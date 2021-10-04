@@ -95,7 +95,7 @@ public class PlayerController : MonoBehaviour
     public void Move()
     {
         Vector3 moveDir = transform.TransformDirection(new Vector3(input.x, 0, input.y));
-        //Make powerup
+        //Make powerup (instead if no input, add force negatively)
         if (reverseReset && isGrounded && !grapple.IsGrappling())
         {
             Vector2 currDir = new Vector2(rb.velocity.x, rb.velocity.z).normalized;

@@ -105,7 +105,7 @@ public class GeneratePlanet : MonoBehaviour
         Random.InitState(seed);
 
         worleyMap = new worleyPoint[buildingsWidth, buildingsWidth];
-        heightMap = GenerateNoiseMap((quadsPerChunk + 1) * totalChunks, (quadsPerChunk + 1) * totalChunks, 116, 25, 4,
+        heightMap = GenerateNoiseMap((quadsPerChunk) * totalChunks, (quadsPerChunk) * totalChunks, 116, 25, 4,
             0.74f, 2.57f, Vector2.zero);
 
         List<MeshData> meshChunks = new List<MeshData>();
@@ -114,7 +114,7 @@ public class GeneratePlanet : MonoBehaviour
         {
             for (int j = 0; j < totalChunks; j++)
             {
-                MeshData chunk = ComputeChunk(i * quadsPerChunk, j * quadsPerChunk);
+                MeshData chunk = ComputeChunk(j * (quadsPerChunk - 1), i * (quadsPerChunk - 1));
 
                 GameObject g = new GameObject("Meshy"); //create gameobject for the mesh
                 g.transform.parent = container; //set parent to the container we just made
@@ -123,8 +123,8 @@ public class GeneratePlanet : MonoBehaviour
                 mr.material = skyMeshMat; //set material to avoid evil pinkness of missing texture
                 Mesh mesh = chunk.CreateMesh();
                 mf.sharedMesh = mesh;
-                // mf.mesh.CombineMeshes(data.ToArray()); //set mesh to the combination of all of the blocks in the list
-                meshes.Add(mesh); //keep track of mesh so we can destroy it when it's no longer needed
+
+                meshes.Add(mesh);
                 g.AddComponent<MeshCollider>().sharedMesh = mf.sharedMesh;
                 g.transform.position = new Vector3(j * (chunkSize - baseQuadSize), 0, i * (chunkSize - baseQuadSize));
             }
@@ -137,41 +137,46 @@ public class GeneratePlanet : MonoBehaviour
         MeshData meshData = new MeshData(quadsPerChunk, quadsPerChunk);
         int vertexIndex = 0;
 
-        for (int i = 0; i <= quadsPerChunk; i++)
+        float topLeftX = (quadsPerChunk - 1) / -2f;
+        float topLeftZ = (quadsPerChunk - 1) / 2f;
+
+        topLeftX *= baseQuadSize;
+        topLeftZ *= baseQuadSize;
+        
+        for (int i = 0; i < quadsPerChunk; i++)
         {
             int y = i + yOff;
-            for (int j = 0; j <= quadsPerChunk; j++)
+            for (int j = 0; j < quadsPerChunk; j++)
             {
                 int x = j + xOff;
-                // Vector2Int localWorleyPoint = new Vector2Int(x, y) / quadsPerBuilding;
-                // Vector2 currPos = new Vector2(x * baseQuadSize, y * baseQuadSize);
-                // float minDist = float.MaxValue;
-                // Vector2Int closestWorleyPoint = Vector2Int.zero;
-                // bool isNearBuilding = false;
-                // //Surrounding worley points
-                // for (int k = -1; k < 1; k++)
-                // for (int l = -1; l < 1; l++)
-                // {
-                //     //Do some check if at bounds of map
-                //     Vector2Int currentWorleyIndex = localWorleyPoint + new Vector2Int(k, l);
-                //     if (currentWorleyIndex.x > buildingsWidth - 1) currentWorleyIndex.x = buildingsWidth - 1;
-                //     if (currentWorleyIndex.x < 0) currentWorleyIndex.x = 0;
-                //
-                //     if (currentWorleyIndex.y > buildingsWidth - 1) currentWorleyIndex.y = buildingsWidth - 1;
-                //     if (currentWorleyIndex.y < 0) currentWorleyIndex.y = 0;
-                //
-                //
-                //     Vector2 currWorleyPos =
-                //         worleyMap[currentWorleyIndex.x, currentWorleyIndex.y].localPos * buildingSize +
-                //         (Vector2) currentWorleyIndex * buildingSize;
-                //     // Debug.DrawLine(currWorleyPos, Vector3.zero, Color.black, 999999);
-                //     float dist = Vector2.Distance(currWorleyPos, currPos);
-                //     if (dist < minDist)
-                //     {
-                //         minDist = dist;
-                //         closestWorleyPoint = currentWorleyIndex;
-                //     }
-                // }
+                print($"{x},{y}");
+                Vector2Int localWorleyPoint = new Vector2Int(x, y) / quadsPerBuilding;
+                Vector2 currPos = new Vector2(x * baseQuadSize, y * baseQuadSize);
+                float minDist = float.MaxValue;
+                Vector2Int closestWorleyPoint = Vector2Int.zero;
+                //Surrounding worley points
+                for (int k = -1; k < 1; k++)
+                for (int l = -1; l < 1; l++)
+                {
+                    //Do some check if at bounds of map
+                    Vector2Int currentWorleyIndex = localWorleyPoint + new Vector2Int(k, l);
+                    if (currentWorleyIndex.x > buildingsWidth - 1) currentWorleyIndex.x = buildingsWidth - 1;
+                    if (currentWorleyIndex.x < 0) currentWorleyIndex.x = 0;
+
+                    if (currentWorleyIndex.y > buildingsWidth - 1) currentWorleyIndex.y = buildingsWidth - 1;
+                    if (currentWorleyIndex.y < 0) currentWorleyIndex.y = 0;
+
+                    Vector2 currWorleyPos =
+                        worleyMap[currentWorleyIndex.x, currentWorleyIndex.y].localPos * buildingSize +
+                        (Vector2) currentWorleyIndex * buildingSize;
+                    // Debug.DrawLine(currWorleyPos, Vector3.zero, Color.black, 999999);
+                    float dist = Vector2.Distance(currWorleyPos, currPos);
+                    if (dist < minDist)
+                    {
+                        minDist = dist;
+                        closestWorleyPoint = currentWorleyIndex;
+                    }
+                }
 
                 float currHeight = heightMap[x, y] * noiseScale;
                 // if (worleyMap[closestWorleyPoint.x, closestWorleyPoint.y].value < buildingChance &&
@@ -180,14 +185,16 @@ public class GeneratePlanet : MonoBehaviour
                 //                   worleyScale +
                 //                   minDist * distanceScale;
 
-                meshData.vertices[vertexIndex] =
-                    new Vector3(j * baseQuadSize, currHeight, i * baseQuadSize);
-                // meshData.uvs[vertexIndex] = new Vector2(x / (float) quadsPerChunk, y / (float) quadsPerChunk);
+                //The centering is the fuck up reason
+                meshData.vertices[vertexIndex] = new Vector3(j * baseQuadSize + topLeftX , currHeight, topLeftZ - i * baseQuadSize);
+                // meshData.vertices[vertexIndex] = new Vector3(j * baseQuadSize , currHeight, + i * baseQuadSize);
+
+                
+                meshData.uvs[vertexIndex] = new Vector2(x / (float) quadsPerChunk, y / (float) quadsPerChunk);
                 if (j < quadsPerChunk - 1 && i < quadsPerChunk - 1)
                 {
-                    meshData.AddTriangle(vertexIndex, vertexIndex + quadsPerChunk + 1, vertexIndex + 1);
-                    meshData.AddTriangle(vertexIndex + 1, vertexIndex + quadsPerChunk + 1,
-                        vertexIndex + quadsPerChunk + 2);
+                    meshData.AddTriangle(vertexIndex, vertexIndex + quadsPerChunk + 1, vertexIndex + quadsPerChunk);
+                    meshData.AddTriangle(vertexIndex + quadsPerChunk + 1, vertexIndex, vertexIndex + 1);
                 }
 
                 vertexIndex++;
@@ -536,9 +543,9 @@ public class MeshData
 
     public MeshData(int meshWidth, int meshHeight)
     {
-        vertices = new Vector3[(meshWidth + 1) * (meshWidth + 1)];
-        uvs = new Vector2[(meshWidth + 1) * (meshHeight + 1)];
-        triangles = new int[(meshWidth) * (meshHeight) * 6];
+        vertices = new Vector3[(meshWidth) * (meshWidth)];
+        uvs = new Vector2[(meshWidth) * (meshHeight)];
+        triangles = new int[(meshWidth - 1) * (meshHeight - 1) * 6];
     }
 
     public void AddTriangle(int a, int b, int c)
