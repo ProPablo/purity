@@ -10,16 +10,33 @@ public class TerrainInspector : Editor
     {
         base.OnInspectorGUI();
         GeneratePlanet gen = (GeneratePlanet) target;
-        if (gen.debugVerteces)
+        if (gen.debugGen)
+        {
+            gen.DrawMesh();
+        }
+        else
         {
             if (GUILayout.Button("Generate Mesh"))
             {
                 gen.DrawMesh();
             }
+            
         }
-        else
+
+        if (GUILayout.Button("ComputeShader"))
         {
-            gen.DrawMesh();
+            gen.RunShader();
         }
+        
+        if (GUILayout.Button("GenSky"))
+        {
+            gen.GenerateHighGround();
+        }
+
+        if (GUILayout.Button("Gen Large Terrain"))
+        {
+            gen.GenerateTerrainLarge();
+        }
+        
     }
 }

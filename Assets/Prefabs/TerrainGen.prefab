@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7115028511038473228
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7115028511038473218}
+  - component: {fileID: 7115028511038473219}
+  m_Layer: 0
+  m_Name: TerrainGen
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7115028511038473218
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7115028511038473228}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 19.24, z: -2.4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7115028511038473219
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7115028511038473228}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66737248b7a47cd43857bafc90791953, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  debugVertices: 0
+  debugGen: 0
+  mapSize: 56.09
+  buildingSize: 3.91
+  buildingThreshold: 0.19
+  baseQuadSize: 0.5
+  buildingHeight: 31.58
+  buildingChance: 0.234
+  noiseScale: 1.5
+  worleyScale: 0.11
+  distanceScale: 0.09
+  seed: 62
+  meshFilter: {fileID: 0}
+  meshRenderer: {fileID: 0}
+  meshCollider: {fileID: 0}
+  blockPf: {fileID: 14602677385635216, guid: 84295793d8612814b87e3a91998752c0, type: 3}
+  blockSize: 1
+  blockChance: 1
+  heightWeight: 0.1
+  perlinNoiseScale: 0.17
+  skyMeshFilter: {fileID: 0}
+  skyMeshMat: {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  computeShader: {fileID: 7200000, guid: 26094f638f77a824e9250c6d6e827e0c, type: 3}
+  renderTexture: {fileID: 0}
