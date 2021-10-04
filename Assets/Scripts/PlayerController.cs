@@ -11,6 +11,10 @@ public class PlayerController : MonoBehaviour
     public Transform feet;
     public float mouseSens = 100f;
     public float walkingForce = 3000f;
+    public float airForce = 900f;
+    public float airDrag = 0.5f;
+    public float groundDrag = 2f;
+    
     public float maxVel = 3f;
     public float currentForce;
     public bool reverseReset = true;
@@ -25,6 +29,7 @@ public class PlayerController : MonoBehaviour
     float verticalLookRotation = 0;
     bool isGrounded = true;
     private bool jump = false;
+    public GrappleScript grapple;
 
 
     void Start()
@@ -90,9 +95,8 @@ public class PlayerController : MonoBehaviour
     public void Move()
     {
         Vector3 moveDir = transform.TransformDirection(new Vector3(input.x, 0, input.y));
-        
         //Make powerup
-        if (reverseReset && isGrounded)
+        if (reverseReset && isGrounded && !grapple.IsGrappling())
         {
             Vector2 currDir = new Vector2(rb.velocity.x, rb.velocity.z).normalized;
             Vector2 horizontalMov = new Vector2(moveDir.x, moveDir.z).normalized;
@@ -104,9 +108,20 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        //Add xz move as force
-        //Limit currentForce when in air
+        if (!isGrounded)
+        {
+            currentForce = airForce;
+            rb.drag = airDrag;
+        }
+        else
+        {
+            currentForce = walkingForce;
+            rb.drag = groundDrag;
+        }
+        
+        
         rb.AddForce(moveDir * Time.deltaTime * currentForce);
+        
 
         if (clampVel)
         {

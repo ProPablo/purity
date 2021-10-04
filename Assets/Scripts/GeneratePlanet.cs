@@ -4,7 +4,6 @@ using UnityEditor.UI;
 using UnityEngine;
 
 
-
 public class GeneratePlanet : MonoBehaviour
 {
     //TODO for now make square but ideally y is higher
@@ -12,21 +11,29 @@ public class GeneratePlanet : MonoBehaviour
     // public Vector2Int buildingsMapSize;
 
     public bool debugVerteces = false;
-    
-    public float mapSize, buildingSize;
 
-    public float buildingThreshold, buildingChance, baseQuadSize, buildingHeight;
+    [Header("TerrainGen")]
+    public float mapSize, buildingSize;
+    public float buildingThreshold, baseQuadSize, buildingHeight;
+    [Range(0, 1)] public float buildingChance = 0.2f;
     public float noiseScale, worleyScale, distanceScale;
 
     public int seed = 42;
-    
-    public MeshFilter meshFilter;
+
+    public MeshFilter meshFilter, highGroundFilter;
     public MeshRenderer meshRenderer;
     public MeshCollider meshCollider;
 
+    
     private MeshData _meshData;
+    Vector2[,] worleyPos;
 
-    // Start is called before the first frame update
+    [Header("SkyGen")]
+    public Transform blockPf;
+    public float blockSize = 1f;
+    [Range(0, 1)]
+    public float blockChance, heightWeight = 0.1f;
+
     void Start()
     {
         GenerateTerrain(seed);
@@ -49,20 +56,29 @@ public class GeneratePlanet : MonoBehaviour
         // meshRenderer.sharedMaterial
     }
 
+    Mesh GenerateHighGround()
+    {
+        int blockCount = Mathf.FloorToInt(mapSize / blockSize);
+        //create a unit cube and store the mesh from it
+        MeshFilter blockMesh = Instantiate(blockPf, Vector3.zero, Quaternion.identity).GetComponent<MeshFilter>();
+        
+        
+        //For loops to gen
+        return new Mesh();
+    }
+    
     MeshData GenerateTerrain(int seed)
     {
         int width = Mathf.FloorToInt((float) mapSize / baseQuadSize);
         //TODO Should be turned to vector
         int quadsPerBuilding = Mathf.FloorToInt(buildingSize / baseQuadSize);
-        int buildingsWidth = Mathf.FloorToInt( mapSize / buildingSize);
+        int buildingsWidth = Mathf.FloorToInt(mapSize / buildingSize);
 
-        Random.InitState(seed);        
-        
+        Random.InitState(seed);
 
         float[,] worleyMap = GenerateRandomMap(buildingsWidth, buildingsWidth);
-        Vector2[,] worleyPos = GenerateRandomVectors(buildingsWidth, buildingsWidth);
+        worleyPos = GenerateRandomVectors(buildingsWidth, buildingsWidth);
         float[,] heightMap = GenerateNoiseMap(width + 1, width + 1, 116, 25, 4, 0.74f, 2.57f, Vector2.zero);
-
 
         float topLeftX = (width - 1) / -2f;
         float topLeftZ = (width - 1) / 2f;
@@ -94,26 +110,29 @@ public class GeneratePlanet : MonoBehaviour
                     // if (worleyMap[currentWorleyIndex.x, currentWorleyIndex.y] < buildingChance)
                     {
                         // isNearBuilding = true;
-                        
-                        Vector2 currWorleyPos = worleyPos[currentWorleyIndex.x, currentWorleyIndex.y] + (Vector2) currentWorleyIndex * buildingSize;
+
+                        Vector2 currWorleyPos = worleyPos[currentWorleyIndex.x, currentWorleyIndex.y] * buildingSize +
+                                                (Vector2) currentWorleyIndex * buildingSize;
+                        // Debug.DrawLine(currWorleyPos, Vector3.zero, Color.black, 999999);
                         float dist = Vector2.Distance(currWorleyPos, currPos);
                         if (dist < minDist)
                         {
-
                             minDist = dist;
                             // print(minDist);
                             closestWorleyPoint = currentWorleyIndex;
                         }
                     }
                 }
-                
+
                 //
                 // if (worleyMap[closestWorleyPoint.x, closestWorleyPoint.y] < buildingChance)
                 //     isNearBuilding = true;
-                
+
                 float currHeight = heightMap[x, y] * noiseScale;
-                if (worleyMap[closestWorleyPoint.x, closestWorleyPoint.y] < buildingChance && minDist > buildingThreshold)
-                    currHeight += buildingHeight * worleyMap[closestWorleyPoint.x, closestWorleyPoint.y] * worleyScale + minDist * distanceScale;
+                if (worleyMap[closestWorleyPoint.x, closestWorleyPoint.y] < buildingChance &&
+                    minDist > buildingThreshold)
+                    currHeight += buildingHeight * worleyMap[closestWorleyPoint.x, closestWorleyPoint.y] * worleyScale +
+                                  minDist * distanceScale;
 
 
                 //Add vertex
@@ -157,7 +176,7 @@ public class GeneratePlanet : MonoBehaviour
         return meshData;
     }
 
-    Vector2[,] GenerateRandomVectors(int width, int height)
+    static Vector2[,] GenerateRandomVectors(int width, int height)
     {
         Vector2[,] randVecs = new Vector2[width, height];
         for (int i = 0; i < width; i++)
@@ -170,9 +189,8 @@ public class GeneratePlanet : MonoBehaviour
     }
 
 
-    float[,] GenerateRandomMap(int width, int height)
+    static float[,] GenerateRandomMap(int width, int height)
     {
-        
         float[,] randMap = new float[width, height];
         for (int i = 0; i < width; i++)
         for (int j = 0; j < height; j++)
@@ -183,7 +201,7 @@ public class GeneratePlanet : MonoBehaviour
         return randMap;
     }
 
-    float[,] GenerateNoiseMap(int mapWidth, int mapHeight, int seed, float scale, int octaves, float persistance,
+    static float[,] GenerateNoiseMap(int mapWidth, int mapHeight, int seed, float scale, int octaves, float persistance,
         float lacunarity, Vector2 offset)
     {
         float[,] noiseMap = new float[mapWidth, mapHeight];

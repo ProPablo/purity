@@ -14,14 +14,15 @@ public class GrappleScript : MonoBehaviour
 
     private Vector3 grapplePoint;
     private SpringJoint spring;
-    public float grappleForce = 100f;
+    // public float grappleForce = 100f;
     public float directionForce = 300f;
     public float grappleClamp = 100f;
 
-    [Header("Grapple Options")] 
-    public float springForce = 8.5f;
+    [Header("Grapple Options")] public float springForce = 8.5f;
     public float minDist = 0.1f;
+
     public float maxDist = 0.4f;
+
     //if player mass is low, increase this to get more effect from the grapple
     public float massScale = 4.5f;
 
@@ -31,7 +32,7 @@ public class GrappleScript : MonoBehaviour
     public PhysicMaterial normalMat;
 
     private Collider col;
-    
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -62,7 +63,6 @@ public class GrappleScript : MonoBehaviour
     {
         if (spring != null)
         {
-            
             Vector3 dir = (grapplePoint - transform.position).normalized;
             rb.AddForce(dir * directionForce * Time.deltaTime);
         }
@@ -73,12 +73,12 @@ public class GrappleScript : MonoBehaviour
         print("start grapple");
 
         gunAnim.SetBool("isGrapple", true);
-        
+
         RaycastHit hit;
         if (Physics.Raycast(hands.position, hands.forward, out hit, maxGrapple, whatIsGrappleable))
         {
-            controller.reverseReset = false;
-            controller.currentForce = grappleForce;
+            // controller.reverseReset = false;
+            // controller.currentForce = grappleForce;
             grappleRope.enabled = true;
             col.material = grappleMat;
 
@@ -89,7 +89,7 @@ public class GrappleScript : MonoBehaviour
             spring.connectedAnchor = grapplePoint;
             float distance = Vector3.Distance(hands.position, grapplePoint);
             spring.maxDistance = maxDist;
-            spring.minDistance =  minDist;
+            spring.minDistance = minDist;
 
             //spring force
             spring.spring = springForce;
@@ -97,7 +97,7 @@ public class GrappleScript : MonoBehaviour
             spring.damper = 2f;
             //effect of mass of object (keep low for gravity to keep affecting)
             spring.massScale = massScale;
-            
+
             //also tune the actual weight of the character otherwise they will go in much higher y than x
         }
     }
@@ -105,11 +105,11 @@ public class GrappleScript : MonoBehaviour
     void StopGrapple()
     {
         print("stop grapple");
-        controller.reverseReset = true;
+        // controller.reverseReset = true;
+        // controller.currentForce = controller.walkingForce;
         col.material = normalMat;
         grappleRope.enabled = false;
-        controller.currentForce = controller.walkingForce;
-        
+
         gunAnim.SetBool("isGrapple", false);
         Destroy(spring);
     }
@@ -119,5 +119,10 @@ public class GrappleScript : MonoBehaviour
         if (!spring) return;
         grappleRope.SetPosition(0, gunTip.position);
         grappleRope.SetPosition(1, grapplePoint);
+    }
+
+    public bool IsGrappling()
+    {
+        return spring != null;
     }
 }
